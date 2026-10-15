@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Who's Winning the Money Race?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗳️</text></svg>" />
+<style>
+  :root {
+    --bg: #EBECF5;
+    --surface: #FFFFFF;
+    --surface-sunken: #F7F8FD;
+    --border: rgba(29,29,37,0.12);
+    --text: #1D1D25;
+    --text-dim: #6B6B76;
+    --brand: #00A651;
+    --brand-dark: #00843D;
+    --dem: #0079F0;
+    --dem-bg: rgba(0,121,240,0.10);
+    --rep: #E8384F;
+    --rep-bg: rgba(232,56,79,0.10);
+    --ind: #8A8A93;
+    --ind-bg: rgba(138,138,147,0.12);
+    --shadow: 0 1px 2px rgba(29,29,37,0.06);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121217;
+      --surface: #1C1C24;
+      --surface-sunken: #17171D;
+      --border: rgba(247,248,253,0.12);
+      --text: #F3F4FA;
+      --text-dim: #9D9DA8;
+      --dem-bg: rgba(0,121,240,0.18);
+      --rep-bg: rgba(232,56,79,0.18);
+      --ind-bg: rgba(138,138,147,0.22);
+      --shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121217;
+    --surface: #1C1C24;
+    --surface-sunken: #17171D;
+    --border: rgba(247,248,253,0.12);
+    --text: #F3F4FA;
+    --text-dim: #9D9DA8;
+    --dem-bg: rgba(0,121,240,0.18);
+    --rep-bg: rgba(232,56,79,0.18);
+    --ind-bg: rgba(138,138,147,0.22);
+    --shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .masthead .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--brand);
+  }
+  .masthead .tag {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  h1 {
+    font-size: clamp(26px, 5vw, 36px);
+    line-height: 1.15;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .sub {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0 0 24px;
+    max-width: 56ch;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 14px;
+    box-shadow: var(--shadow);
+  }
+  .stat .n {
+    font-size: clamp(17px, 3.6vw, 22px);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .l {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .stat.dem .n { color: var(--dem); }
+  .stat.rep .n { color: var(--rep); }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .pillgroup { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    white-space: nowrap;
+  }
+  .pill[data-active="true"] { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .pill[data-party="D"][data-active="true"] { background: var(--dem); border-color: var(--dem); color: #fff; }
+  .pill[data-party="R"][data-active="true"] { background: var(--rep); border-color: var(--rep); color: #fff; }
+  .pill[data-party="I"][data-active="true"] { background: var(--ind); border-color: var(--ind); color: #fff; }
+
+  .search {
+    margin-left: auto;
+    position: relative;
+    min-width: 160px;
+    flex: 1 1 160px;
+    max-width: 240px;
+  }
+  .search input {
+    width: 100%;
+    padding: 8px 12px 8px 30px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13.5px;
+  }
+  .search input:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+
+  .platform-row { display: flex; gap: 6px; }
+  .platform-row .pill { font-size: 12.5px; padding: 6px 12px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  .tablewrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  thead th {
+    text-align: left;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-sunken);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th.active { color: var(--text); }
+  thead th .arrow { font-size: 10px; margin-left: 3px; opacity: 0.6; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 12px 14px; font-size: 14.5px; }
+  td.rank { color: var(--text-dim); font-variant-numeric: tabular-nums; width: 30px; }
+  td.name { font-weight: 600; }
+  td.vol { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  td.plat { color: var(--text-dim); font-size: 13px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+  .badge.D { background: var(--dem-bg); color: var(--dem); }
+  .badge.R { background: var(--rep-bg); color: var(--rep); }
+  .badge.I { background: var(--ind-bg); color: var(--ind); }
+
+  .empty {
+    padding: 36px 14px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .foot {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* mobile: card layout instead of table columns */
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stats .stat:first-child { grid-column: 1 / -1; }
+    thead { display: none; }
+    tbody tr {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "name vol" "meta meta";
+      padding: 12px 14px;
+      gap: 4px 0;
+    }
+    tbody td { padding: 0; border: none; }
+    td.rank { display: none; }
+    td.name { grid-area: name; }
+    td.plat { grid-area: meta; display: flex; gap: 8px; align-items: center; }
+    td.vol { grid-area: vol; align-self: start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="brand">ACTION NETWORK · PREDICTION MARKETS</span>
+    <span class="tag">Updated Oct 2026</span>
+  </div>
+
+  <h1>Who's winning the money race?</h1>
+  <p class="sub">The top 40 highest-volume U.S. politicians on each of Kalshi and Polymarket (80 rows total), not every politician on either platform. Sort any column or filter by party to see where the money is actually going.</p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="n" id="statTotal">$0</div>
+      <div class="l">Combined volume, this list</div>
+    </div>
+    <div class="stat dem">
+      <div class="n" id="statDem">$0</div>
+      <div class="l">Democrats</div>
+    </div>
+    <div class="stat rep">
+      <div class="n" id="statRep">$0</div>
+      <div class="l">Republicans</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="pillgroup" id="partyPills">
+      <button class="pill" data-party="ALL" data-active="true">All</button>
+      <button class="pill" data-party="D">Democrats</button>
+      <button class="pill" data-party="R">Republicans</button>
+      <button class="pill" data-party="I">Independent / Other</button>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 16.75a6.75 6.75 0 115.428-2.736l4.877 4.877a1 1 0 11-1.414 1.414l-4.877-4.877A6.72 6.72 0 0110 16.75zM15.25 10a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" fill="currentColor"/></svg>
+      <input id="searchBox" type="text" placeholder="Find a name" />
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="pillgroup platform-row" id="platformPills">
+      <button class="pill" data-platform="ALL" data-active="true">Both platforms</button>
+      <button class="pill" data-platform="Kalshi">Kalshi</button>
+      <button class="pill" data-platform="Polymarket">Polymarket</button>
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th data-sort="name">Politician<span class="arrow"></span></th>
+          <th data-sort="party">Party<span class="arrow"></span></th>
+          <th data-sort="platform">Platform<span class="arrow"></span></th>
+          <th data-sort="volume" style="text-align:right">Volume<span class="arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none">No one matches that filter.</div>
+  </div>
+
+  <p class="foot">
+    <strong>Not exhaustive.</strong> This is the top 40 politicians by combined volume on Kalshi and the top 40 on Polymarket, 80 rows total, out of roughly 1,445 politicians tracked on Kalshi and 282 on Polymarket overall. The cutoff is deliberate: past the top 40, verifying party affiliation with confidence gets much harder, so the list stops where that confidence does rather than guessing at scale. It also excludes the roughly 50 candidates from the 2026 midterm Governor and Senate races who fall outside each platform's top 40 overall.
+    <br><br>
+    Volume reflects each politician's combined trading activity across every market naming them, not just the 2026 midterm races, so figures here won't match race-specific tallies elsewhere.
+    Kalshi volume is reported in contracts, treated here as dollars since each contract settles at $1. "Independent / Other" covers Elon Musk (no party affiliation), Andrew Yang (Forward Party) and Bernie Sanders (registered independent).
+  </p>
+
+</div>
+
+<script>
+const DATA = [
+  ["Nithya Raman","D","Kalshi",10370930],
+  ["Karen Bass","D","Kalshi",9172502],
+  ["James Talarico","D","Kalshi",7005614],
+  ["Donald Trump","R","Kalshi",6795168],
+  ["Ken Paxton","R","Kalshi",6409057],
+  ["Xavier Becerra","D","Kalshi",6201859],
+  ["Troy Jackson","D","Kalshi",3000398],
+  ["JD Vance","R","Kalshi",2903278],
+  ["Jon Ossoff","D","Kalshi",2641762],
+  ["Susan Collins","R","Kalshi",2552455],
+  ["Abdul El-Sayed","D","Kalshi",2506884],
+  ["Sherrod Brown","D","Kalshi",2043654],
+  ["Alexandria Ocasio-Cortez","D","Kalshi",2011851],
+  ["Gavin Newsom","D","Kalshi",1895104],
+  ["Marco Rubio","R","Kalshi",1739756],
+  ["Mike Rogers","R","Kalshi",1710834],
+  ["Roy Cooper","D","Kalshi",1536703],
+  ["Byron Donalds","R","Kalshi",1467204],
+  ["Jon Husted","R","Kalshi",1361964],
+  ["Ashley Hinson","R","Kalshi",1340824],
+  ["Josh Turek","D","Kalshi",1135896],
+  ["Pete Ricketts","R","Kalshi",1067323],
+  ["Kamala Harris","D","Kalshi",882703],
+  ["Darline Graham","R","Kalshi",878648],
+  ["Roger Marshall","R","Kalshi",864760],
+  ["Amy Acton","D","Kalshi",761442],
+  ["Adam Hamilton","D","Kalshi",759300],
+  ["Rob Sand","D","Kalshi",682230],
+  ["Greg Abbott","R","Kalshi",590601],
+  ["Josh Shapiro","D","Kalshi",543664],
+  ["Chris Pappas","D","Kalshi",538591],
+  ["Steve Hilton","R","Kalshi",510497],
+  ["Kathy Hochul","D","Kalshi",508318],
+  ["Peggy Flanagan","D","Kalshi",495665],
+  ["Aaron Ford","D","Kalshi",487389],
+  ["David Crowley","D","Kalshi",445246],
+  ["Vivek Ramaswamy","R","Kalshi",441009],
+  ["Andy Beshear","D","Kalshi",428111],
+  ["Pete Buttigieg","D","Kalshi",424549],
+  ["Mark Kelly","D","Kalshi",421741],
+  ["Tim Walz","D","Polymarket",88671963],
+  ["Donald Trump","R","Polymarket",85526621],
+  ["Elon Musk","I","Polymarket",62565327],
+  ["Zohran Mamdani","D","Polymarket",61662628],
+  ["Greg Abbott","R","Polymarket",57031007],
+  ["Vivek Ramaswamy","R","Polymarket",54281336],
+  ["Bernie Sanders","I","Polymarket",52872978],
+  ["Tulsi Gabbard","R","Polymarket",49499995],
+  ["Andrew Yang","I","Polymarket",48928092],
+  ["Gavin Newsom","D","Polymarket",46673208],
+  ["Michelle Obama","D","Polymarket",45705197],
+  ["Byron Donalds","R","Polymarket",44566623],
+  ["Hillary Clinton","D","Polymarket",44235549],
+  ["Mike Pence","R","Polymarket",43733606],
+  ["Phil Murphy","D","Polymarket",42904802],
+  ["Beto O'Rourke","D","Polymarket",42828404],
+  ["Nikki Haley","R","Polymarket",40801589],
+  ["Liz Cheney","R","Polymarket",38603262],
+  ["John Thune","R","Polymarket",38264399],
+  ["Kristi Noem","R","Polymarket",37804194],
+  ["Glenn Youngkin","R","Polymarket",37043214],
+  ["Jasmine Crockett","D","Polymarket",36474606],
+  ["Sarah Huckabee Sanders","R","Polymarket",35858151],
+  ["Gina Raimondo","D","Polymarket",35787421],
+  ["Barack Obama","D","Polymarket",34272691],
+  ["Raphael Warnock","D","Polymarket",33754408],
+  ["JD Vance","R","Polymarket",33094194],
+  ["Andy Beshear","D","Polymarket",32844099],
+  ["Richard Grenell","R","Polymarket",32798133],
+  ["Roy Cooper","D","Polymarket",31882306],
+  ["Wes Moore","D","Polymarket",31168270],
+  ["Pete Hegseth","R","Polymarket",29708865],
+  ["Alexandria Ocasio-Cortez","D","Polymarket",29355094],
+  ["Katie Britt","R","Polymarket",28998536],
+  ["JB Pritzker","D","Polymarket",28884298],
+  ["Ron DeSantis","R","Polymarket",28274866],
+  ["Elise Stefanik","R","Polymarket",28193680],
+  ["Gretchen Whitmer","D","Polymarket",27744273],
+  ["Jared Polis","D","Polymarket",27494975],
+  ["Cory Booker","D","Polymarket",26360958]
+].map(([name, party, platform, volume]) => ({name, party, platform, volume}));
+
+const PARTY_LABEL = { D: "Democrat", R: "Republican", I: "Independent" };
+
+let state = { party: "ALL", platform: "ALL", query: "", sortKey: "volume", sortDir: "desc" };
+
+function fmtMoney(n) {
+  if (n >= 1000000) return "$" + (n/1000000).toFixed(n >= 10000000 ? 1 : 2) + "M";
+  return "$" + n.toLocaleString("en-US");
+}
+function fmtMoneyFull(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+
+function applyState() {
+  let rows = DATA.filter(r => {
+    if (state.party !== "ALL" && r.party !== state.party) return false;
+    if (state.platform !== "ALL" && r.platform !== state.platform) return false;
+    if (state.query && !r.name.toLowerCase().includes(state.query.toLowerCase())) return false;
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    let av = a[state.sortKey], bv = b[state.sortKey];
+    if (state.sortKey === "volume") { av = a.volume; bv = b.volume; }
+    else { av = String(av).toLowerCase(); bv = String(bv).toLowerCase(); }
+    let cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return state.sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const tbody = document.getElementById("rows");
+  const empty = document.getElementById("emptyState");
+  tbody.innerHTML = "";
+
+  if (rows.length === 0) {
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    rows.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="rank">${i + 1}</td>
+        <td class="name">${r.name}</td>
+        <td><span class="badge ${r.party}">${PARTY_LABEL[r.party]}</span></td>
+        <td class="plat"><span class="badge ${r.party}" style="display:none"></span>${r.platform}</td>
+        <td class="vol" title="${fmtMoneyFull(r.volume)}">${fmtMoney(r.volume)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // update header active states + arrows
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    const key = th.getAttribute("data-sort");
+    const arrow = th.querySelector(".arrow");
+    if (key === state.sortKey) {
+      th.classList.add("active");
+      arrow.textContent = state.sortDir === "asc" ? "↑" : "↓";
+    } else {
+      th.classList.remove("active");
+      arrow.textContent = "";
+    }
+  });
+
+  // stats always reflect party+platform+search filtered set, matching table
+  const sumAll = rows.reduce((s, r) => s + r.volume, 0);
+  const sumDem = rows.filter(r => r.party === "D").reduce((s, r) => s + r.volume, 0);
+  const sumRep = rows.filter(r => r.party === "R").reduce((s, r) => s + r.volume, 0);
+  document.getElementById("statTotal").textContent = fmtMoney(sumAll);
+  document.getElementById("statDem").textContent = fmtMoney(sumDem);
+  document.getElementById("statRep").textContent = fmtMoney(sumRep);
+}
+
+document.getElementById("partyPills").addEventListener("click", (e) => {
+  const btn = e.target.closest(".pill");
+  if (!btn) return;
+  state.party = btn.getAttribute("data-party");
+  document.querySelectorAll("#partyPills .pill").forEach(p => p.removeAttribute("data-active"));
+  btn.setAttribute("data-active", "true");
+  applyState();
+});
+
+document.getElementById("platformPills").addEventListener("click", (e) => {
+  const btn = e.target.closest(".pill");
+  if (!btn) return;
+  state.platform = btn.getAttribute("data-platform");
+  document.querySelectorAll("#platformPills .pill").forEach(p => p.removeAttribute("data-active"));
+  btn.setAttribute("data-active", "true");
+  applyState();
+});
+
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  state.query = e.target.value;
+  applyState();
+});
+
+document.querySelectorAll("th[data-sort]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.getAttribute("data-sort");
+    if (state.sortKey === key) {
+      state.sortDir = state.sortDir === "asc" ? "desc" : "asc";
+    } else {
+      state.sortKey = key;
+      state.sortDir = key === "name" || key === "platform" || key === "party" ? "asc" : "desc";
+    }
+    applyState();
+  });
+});
+
+applyState();
+</script>
+</body>
+</html>
