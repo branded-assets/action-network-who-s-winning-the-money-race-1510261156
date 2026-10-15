@@ -311,6 +311,8 @@
   <p class="foot">
     <strong>Not exhaustive.</strong> This is the top 40 politicians by combined volume on Kalshi and the top 40 on Polymarket, 80 rows total, out of roughly 1,445 politicians tracked on Kalshi and 282 on Polymarket overall. The cutoff is deliberate: past the top 40, verifying party affiliation with confidence gets much harder, so the list stops where that confidence does rather than guessing at scale. It also excludes the roughly 50 candidates from the 2026 midterm Governor and Senate races who fall outside each platform's top 40 overall.
     <br><br>
+    With "Both platforms" selected, a person's Kalshi and Polymarket volume is summed into one row (shown as "Kalshi + Polymarket"); switching to a single platform shows that platform's figure on its own.
+    <br><br>
     Volume reflects each politician's combined trading activity across every market naming them, not just the 2026 midterm races, so figures here won't match race-specific tallies elsewhere.
     Kalshi volume is reported in contracts, treated here as dollars since each contract settles at $1. "Independent / Other" covers Elon Musk (no party affiliation), Andrew Yang (Forward Party) and Bernie Sanders (registered independent).
   </p>
@@ -319,46 +321,46 @@
 
 <script>
 const DATA = [
-  ["Nithya Raman","D","Kalshi",10370930],
-  ["Karen Bass","D","Kalshi",9172502],
-  ["James Talarico","D","Kalshi",7005614],
-  ["Donald Trump","R","Kalshi",6795168],
-  ["Ken Paxton","R","Kalshi",6409057],
-  ["Xavier Becerra","D","Kalshi",6201859],
-  ["Troy Jackson","D","Kalshi",3000398],
-  ["JD Vance","R","Kalshi",2903278],
-  ["Jon Ossoff","D","Kalshi",2641762],
-  ["Susan Collins","R","Kalshi",2552455],
-  ["Abdul El-Sayed","D","Kalshi",2506884],
-  ["Sherrod Brown","D","Kalshi",2043654],
-  ["Alexandria Ocasio-Cortez","D","Kalshi",2011851],
-  ["Gavin Newsom","D","Kalshi",1895104],
-  ["Marco Rubio","R","Kalshi",1739756],
-  ["Mike Rogers","R","Kalshi",1710834],
-  ["Roy Cooper","D","Kalshi",1536703],
-  ["Byron Donalds","R","Kalshi",1467204],
-  ["Jon Husted","R","Kalshi",1361964],
-  ["Ashley Hinson","R","Kalshi",1340824],
-  ["Josh Turek","D","Kalshi",1135896],
-  ["Pete Ricketts","R","Kalshi",1067323],
-  ["Kamala Harris","D","Kalshi",882703],
-  ["Darline Graham","R","Kalshi",878648],
-  ["Roger Marshall","R","Kalshi",864760],
-  ["Amy Acton","D","Kalshi",761442],
-  ["Adam Hamilton","D","Kalshi",759300],
-  ["Rob Sand","D","Kalshi",682230],
-  ["Greg Abbott","R","Kalshi",590601],
-  ["Josh Shapiro","D","Kalshi",543664],
-  ["Chris Pappas","D","Kalshi",538591],
-  ["Steve Hilton","R","Kalshi",510497],
-  ["Kathy Hochul","D","Kalshi",508318],
-  ["Peggy Flanagan","D","Kalshi",495665],
-  ["Aaron Ford","D","Kalshi",487389],
-  ["David Crowley","D","Kalshi",445246],
-  ["Vivek Ramaswamy","R","Kalshi",441009],
-  ["Andy Beshear","D","Kalshi",428111],
-  ["Pete Buttigieg","D","Kalshi",424549],
-  ["Mark Kelly","D","Kalshi",421741],
+  ["Donald Trump","R","Kalshi",48574597],
+  ["James Talarico","D","Kalshi",22091411],
+  ["Nithya Raman","D","Kalshi",19962672],
+  ["Karen Bass","D","Kalshi",18729110],
+  ["Ken Paxton","R","Kalshi",17626925],
+  ["Gavin Newsom","D","Kalshi",15770015],
+  ["Alexandria Ocasio-Cortez","D","Kalshi",14858716],
+  ["Jon Ossoff","D","Kalshi",13941118],
+  ["Steve Hilton","R","Kalshi",13104587],
+  ["Marco Rubio","R","Kalshi",12498681],
+  ["Kamala Harris","D","Kalshi",12072161],
+  ["Mark Kelly","D","Kalshi",10712869],
+  ["Zohran Mamdani","D","Kalshi",10400172],
+  ["Rahm Emanuel","D","Kalshi",9661394],
+  ["JD Vance","R","Kalshi",9620098],
+  ["Pete Buttigieg","D","Kalshi",9073860],
+  ["JB Pritzker","D","Kalshi",9011491],
+  ["Andy Beshear","D","Kalshi",8928284],
+  ["Josh Shapiro","D","Kalshi",8037893],
+  ["Abdul El-Sayed","D","Kalshi",7858913],
+  ["Wes Moore","D","Kalshi",7858875],
+  ["Ro Khanna","D","Kalshi",7471399],
+  ["Gretchen Whitmer","D","Kalshi",7193179],
+  ["Michelle Obama","D","Kalshi",7067082],
+  ["Xavier Becerra","D","Kalshi",6492999],
+  ["Barack Obama","D","Kalshi",6481813],
+  ["Susan Collins","R","Kalshi",6275565],
+  ["Ron DeSantis","R","Kalshi",5824651],
+  ["Tim Walz","D","Kalshi",5567580],
+  ["Graham Platner","D","Kalshi",5519690],
+  ["Bernie Sanders","I","Kalshi",5481935],
+  ["Troy Jackson","D","Kalshi",5472361],
+  ["John Fetterman","D","Kalshi",5355454],
+  ["Raphael Warnock","D","Kalshi",5325450],
+  ["Roy Cooper","D","Kalshi",5112790],
+  ["Mike Rogers","R","Kalshi",5107379],
+  ["Vivek Ramaswamy","R","Kalshi",4888590],
+  ["Andrew Yang","I","Kalshi",4795018],
+  ["Thomas Massie","R","Kalshi",4663335],
+  ["Chris Murphy","D","Kalshi",4157348],
   ["Tim Walz","D","Polymarket",88671963],
   ["Donald Trump","R","Polymarket",85526621],
   ["Elon Musk","I","Polymarket",62565327],
@@ -401,6 +403,26 @@ const DATA = [
   ["Cory Booker","D","Polymarket",26360958]
 ].map(([name, party, platform, volume]) => ({name, party, platform, volume}));
 
+// When "Both platforms" is selected, combine a person's Kalshi + Polymarket rows
+// into a single row with a summed volume, rather than listing them twice.
+const MERGED = (() => {
+  const byName = new Map();
+  DATA.forEach(r => {
+    if (!byName.has(r.name)) {
+      byName.set(r.name, { name: r.name, party: r.party, volume: 0, platforms: new Set() });
+    }
+    const m = byName.get(r.name);
+    m.volume += r.volume;
+    m.platforms.add(r.platform);
+  });
+  return Array.from(byName.values()).map(m => ({
+    name: m.name,
+    party: m.party,
+    volume: m.volume,
+    platform: Array.from(m.platforms).sort().join(" + ")
+  }));
+})();
+
 const PARTY_LABEL = { D: "Democrat", R: "Republican", I: "Independent" };
 
 let state = { party: "ALL", platform: "ALL", query: "", sortKey: "volume", sortDir: "desc" };
@@ -412,7 +434,8 @@ function fmtMoney(n) {
 function fmtMoneyFull(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
 function applyState() {
-  let rows = DATA.filter(r => {
+  const source = state.platform === "ALL" ? MERGED : DATA;
+  let rows = source.filter(r => {
     if (state.party !== "ALL" && r.party !== state.party) return false;
     if (state.platform !== "ALL" && r.platform !== state.platform) return false;
     if (state.query && !r.name.toLowerCase().includes(state.query.toLowerCase())) return false;
